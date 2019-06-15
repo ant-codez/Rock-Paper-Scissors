@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Project Orbit(beta)</title>
+    <link rel = "stylesheet" href="client/style.css">
+    <link rel = "stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <style>
+        .w3-button {width:75px;}
+    </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.dev.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+
+</head>
+<body>
+
+    <div id = "signIn">
+        Username: <input id="signIn-username" type="text" /> <br>
+        Password: <input id="signIn-password" type="password" />
+        <button id ="btn-signIn">Sign In</button>
+        <button id="btn-signUp">Sign Up</button>
+    </div>
+
+    <div id = "form"class ="form" style="display: none;">
+        <h1>Project Orbit(beta)</h1>
+
+        <div class = "buttons">
+            <button class="w3-button w3-deep-purple" onclick="show_cards()">Cards</button>
+            <button class="w3-button w3-deep-purple" onclick="game_choice('paper')">Paper</button>
+            <button class="w3-button w3-deep-purple" onclick="game_choice('sissors')">Scissors</button>
+            <button class="w3-button w3-deep-purple" onclick="print_socket()">Debug_Print Socket</button>
+            <button class="w3-button w3-deep-purple" onclick="join_game()">Join Game</button>
+        </div>
+
+        <div class = "chat-container" id = "Chat">
+            <ul id="messages"></ul>
+            <form action="">
+                <input id="m" autocomplete="off" /><button>Send</button>
+            </form>
+        </div>
+    </div>
+    <img id = "img" src = "../client/assets/Icons(Series 1)/Absolution-Icon.png"> </img>
+
+<script>
+
+    var socket = io();
+
+    //sign in variables
+    var signInDiv = document.getElementById('signIn');
+    var signInUsername = document.getElementById('signIn-username');
+    var signInBtn = document.getElementById('btn-signIn');
+    var signUpBtn = document.getElementById('btn-signUp');
+    var signPassword = document.getElementById('signIn-password');
+    var formDiv = document.getElementById('form');
+    var sh = document.getElementById('messages');
+
+    var i = document.getElementById('img');
+
+
+    var show_cards = function() {
+        socket.emit('show cards');
+    }
+
+    socket.on('display cards', function(cards){
+        if (cards[0] == 'card1')
+            i.src = '../client/assets/Icons(Series 1)/mandy-icon.png';
+    });
+
+    signInBtn.onclick = function() {
+        socket.emit('signIn', {
+            username: signInUsername.value,
+            password: signPassword.value
+        });
+    }
+
+    signUpBtn.onclick = function() {
+        socket.emit('signUp', {
+            username: signInUsername.value,
+            password: signPassword.value
+        });
+    }
+
+    socket.on('signIn-response', function(data){
+        if (data.success){
+            signInDiv.style.display = 'none';
+            formDiv.style.display = 'inline-block';
+            socket.emit('join lobby', {
+                username: socket.username
+            });
+        }
+        else
+            alert("Sign in uncessful...");
+    });
+
+    socket.on('signUp-response', function(data){
+        if (data.success){
+            alert("Sign up sucessful!!")
+        }
+        else
+            alert("Sign up uncessful... Username is Taken!!");
+    });
+
+    // player choice [none, rock, paper, scissors
+    var game_choice = (str) => {
+        socket.emit('game_choice', {
+            id: socket.id,
+            choice: str,
+        });
+        $('#messages').append($('<li>').text('You choose: ' + str));
+        sh.scrollIntoView(false);
+    }
+
+    var print_socket = () => {
+        socket.emit('print_socket');
+    }
+
+    var join_game = () => {
+        socket.emit('join_game');
+    }
+
+    socket.on('winner', function(txt) {
+        $('#messages').append($('<li>').text('' + txt));
+        sh.scrollIntoView(false);
+    });
+
+    socket.on('get room', function(room){
+            $('#messages').append($('<li>').text('SERVER: Welcome to ' + room));
+            sh.scrollIntoView(false);
+        });
+
+    socket.on('join lobby', function(txt){
+        $('#messages').append($('<li>').text('' + txt));
+        sh.scrollIntoView(false);
+    });
+/*
+    socket.on('game_choice', function(c) {
+        $('#messages').append($('<li>').text('Player chose: ' + c));
+    });
+*/
+    $(function () {
+        $('form').submit(function(e){
+            e.preventDefault(); // prevents page reloading
+            socket.emit('chat message', $('#m').val());
+            $('#m').val('');
+            return false;
+        });
+        socket.on('chat message', function(msg, username){
+            $('#messages').append($('<li>').text(username + ': ' + msg));
+            sh.scrollIntoView(false);
+        });
+    });
+</script>
+</body>
+</html>
+
