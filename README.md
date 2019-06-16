@@ -26,4 +26,4 @@ With both servers up and running you can now successfully create a new account a
       
       localhost:8000
       
-Thats all there is too it!! Don't expect too many updates to happen to this project, this was just a stepping stone to greater games to come.
+Thats all there is too it!! Don't expect too many updates to happen to this project, this was just a stepping stone for greater games to come.
